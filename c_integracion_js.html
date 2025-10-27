@@ -1,144 +1,93 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sección C — Integración con JavaScript</title>
+  <title>Hora y Quiz</title>
   <style>
-    :root{--bg1:#0f1724;--bg2:#1f2a44;--card:rgba(255,255,255,0.04);--accent:#00bcd4;--muted:rgba(234,246,251,0.7);}
-    *{box-sizing:border-box}
-    body{margin:0;min-height:100vh;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:#eaf6fb;display:flex;align-items:center;justify-content:center;padding:24px}
-    .wrap{width:100%;max-width:900px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));padding:20px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.6)}
-    h1{margin:0 0 8px;font-size:1.2rem}
-    .grid{display:grid;grid-template-columns:1fr 320px;gap:16px}
-    .card{background:var(--card);padding:14px;border-radius:10px}
-    .clock{font-size:2rem;font-weight:700}
-    .muted{color:var(--muted)}
-    button{padding:8px 12px;border-radius:8px;border:none;cursor:pointer;background:var(--accent);color:#022}
-    .secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:inherit}
-    .answers{display:flex;flex-direction:column;gap:8px;margin-top:8px}
-    .answer{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.02);cursor:pointer;text-align:left}
-    .result{margin-top:10px;padding:8px;border-radius:8px;background:linear-gradient(90deg, rgba(0,188,212,0.08), rgba(0,188,212,0.04));color:inherit}
-    @media (max-width:820px){.grid{grid-template-columns:1fr}}
+    :root{
+      --card-bg: rgba(255,255,255,0.06);
+      --glass: rgba(255,255,255,0.04);
+      --accent: #00bcd4;
+      --text: #eaf6fb;
+      --muted: rgba(234,246,251,0.7);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Arial, sans-serif;
+      background: linear-gradient(135deg,#0f1724 0%, #1f2a44 100%);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:40px;
+    }
+    .container{
+      width:100%;max-width:800px;
+      background:var(--glass);
+      border-radius:12px;
+      padding:20px;
+      box-shadow:0 8px 30px rgba(0,0,0,0.5);
+      backdrop-filter:blur(10px);
+    }
+    h1{text-align:center;margin-bottom:10px}
+    #clock{
+      text-align:center;font-size:2.2rem;font-weight:bold;margin-bottom:20px;
+    }
+    .quiz{background:var(--card-bg);padding:18px;border-radius:10px;margin-top:20px}
+    .question{margin-bottom:15px}
+    .question p{margin-bottom:6px}
+    label{cursor:pointer}
+    button{
+      background:var(--accent);border:none;padding:8px 14px;margin-top:10px;
+      border-radius:8px;cursor:pointer;font-weight:bold;color:#022;
+    }
+    #result{margin-top:10px;font-weight:bold;background:var(--glass);padding:8px;border-radius:6px}
   </style>
 </head>
 <body>
-  <main class="wrap">
-    <h1>Sección C — Integración con JavaScript</h1>
-    <p class="muted">Esta página muestra un reloj en tiempo real, un botón que cambia el fondo aleatoriamente y un mini-quiz interactivo.</p>
+  <div class="container">
+    <h1>Hora Actual</h1>
+    <div id="clock">--:--:--</div>
 
-    <div class="grid">
-      <section class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <div class="muted">Hora actual</div>
-            <div id="clock" class="clock" aria-live="polite">--:--:--</div>
-            <div id="date" class="muted" style="font-size:0.9rem"></div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <button id="bgBtn" title="Cambiar fondo">Cambiar fondo</button>
-            <button id="resetBg" class="secondary" title="Restaurar fondo">Restaurar</button>
-          </div>
-        </div>
-      </section>
-
-      <aside class="card">
-        <h3 style="margin:0 0 8px">Mini quiz</h3>
-        <div id="quiz"></div>
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
-          <button id="submit">Enviar</button>
-          <button id="reset" class="secondary">Reintentar</button>
-        </div>
-        <div id="score" class="result" style="display:none"></div>
-      </aside>
-
-    </div>
-  </main>
+    <div class="quiz" id="quiz"></div>
+    <button id="submit">Enviar respuestas</button>
+    <p id="result"></p>
+  </div>
 
   <script>
-    // Reloj que actualiza cada segundo
-    const clock = document.getElementById('clock');
-    const dateEl = document.getElementById('date');
-    function pad(n){return String(n).padStart(2,'0')}
-    function tick(){
-      const now = new Date();
-      clock.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-      dateEl.textContent = now.toLocaleDateString();
+    function actualizarHora(){
+      const ahora = new Date();
+      document.getElementById('clock').textContent = ahora.toLocaleTimeString();
     }
-    tick();
-    setInterval(tick,1000);
+    setInterval(actualizarHora,1000);
+    actualizarHora();
 
-    // Fondo aleatorio
-    const bgBtn = document.getElementById('bgBtn');
-    const resetBg = document.getElementById('resetBg');
-    const origBg = getComputedStyle(document.body).background;
-    function rnd(min,max){return Math.floor(Math.random()*(max-min+1))+min}
-    function rndColor(){return `rgb(${rnd(0,255)},${rnd(0,255)},${rnd(0,255)})`}
-    bgBtn.addEventListener('click', ()=>{
-      const c1 = rndColor(), c2 = rndColor();
-      document.body.style.background = `linear-gradient(135deg, ${c1}, ${c2})`;
-    });
-    resetBg.addEventListener('click', ()=>{document.body.style.background = origBg});
-
-    // Quiz interactivo
-    const quizData = [
-      {q:'¿Qué componente almacena carga?', opts:['Resistencia','Condensador','Transistor','Diodo'], a:1},
-      {q:'Unidad de resistencia:', opts:['Ohm (Ω)','Farad (F)','Henry (H)','Ampere (A)'], a:0},
-      {q:'¿Qué componente permite el flujo en una sola dirección?', opts:['Transistor','Diodo','Bobina','Condensador'], a:1}
+    const preguntas = [
+      { q:'¿Qué componente almacena carga eléctrica?', o:['Resistencia','Capacitor','Bobina'], a:1 },
+      { q:'Unidad de corriente eléctrica:', o:['Volt','Ohm','Ampere'], a:2 }
     ];
 
-    const quizEl = document.getElementById('quiz');
-    const scoreEl = document.getElementById('score');
-    const submit = document.getElementById('submit');
-    const reset = document.getElementById('reset');
+    const quizDiv = document.getElementById('quiz');
+    preguntas.forEach((p,i)=>{
+      const div = document.createElement('div');
+      div.className='question';
+      div.innerHTML = `<p>${p.q}</p>` + p.o.map((opt,j)=>
+        `<label><input type="radio" name="p${i}" value="${j}"> ${opt}</label><br>`
+      ).join('');
+      quizDiv.appendChild(div);
+    });
 
-    function render(){
-      quizEl.innerHTML = '';
-      quizData.forEach((item,i)=>{
-        const qdiv = document.createElement('div');
-        qdiv.style.marginBottom = '8px';
-        const qtitle = document.createElement('div'); qtitle.innerHTML = `<strong>Q${i+1}.</strong> ${item.q}`;
-        qdiv.appendChild(qtitle);
-        const ans = document.createElement('div'); ans.className='answers';
-        item.opts.forEach((o,oi)=>{
-          const b = document.createElement('button');
-          b.type='button'; b.className='answer'; b.textContent=o;
-          b.dataset.q=i; b.dataset.o=oi;
-          b.addEventListener('click', ()=>{
-            // desmarcar hermanos
-            ans.querySelectorAll('button').forEach(x=>x.style.outline='none');
-            b.style.outline='3px solid rgba(0,188,212,0.18)';
-            qdiv.dataset.sel = oi;
-          });
-          ans.appendChild(b);
-        });
-        qdiv.appendChild(ans);
-        quizEl.appendChild(qdiv);
+    document.getElementById('submit').onclick = ()=>{
+      let puntaje=0;
+      preguntas.forEach((p,i)=>{
+        const sel = document.querySelector(`input[name=p${i}]:checked`);
+        if(sel && Number(sel.value)===p.a) puntaje++;
       });
-      scoreEl.style.display='none'; scoreEl.textContent='';
-    }
-
-    function grade(){
-      let correct=0;
-      const qs = quizEl.querySelectorAll('[data-q]');
-      const qdivs = quizEl.querySelectorAll('div');
-      // loop through questions by index using quizData
-      quizData.forEach((item,idx)=>{
-        const qDiv = quizEl.children[idx];
-        const sel = Number(qDiv.dataset.sel);
-        const correctIdx = item.a;
-        qDiv.querySelectorAll('.answer').forEach(b=>b.style.background='');
-        if(!Number.isFinite(sel)) return; // sin responder
-        if(sel===correctIdx){ correct++; qDiv.querySelector(`.answer[data-o='${sel}']`).style.background='linear-gradient(90deg, rgba(0,188,212,0.12), rgba(0,188,212,0.04))'; }
-        else{ qDiv.querySelector(`.answer[data-o='${sel}']`)?.style.background='linear-gradient(90deg, rgba(255,80,80,0.12), rgba(255,80,80,0.04))'; qDiv.querySelector(`.answer[data-o='${correctIdx}']`)?.style.background='linear-gradient(90deg, rgba(0,188,212,0.12), rgba(0,188,212,0.04))'; }
-      });
-      scoreEl.style.display='block'; scoreEl.innerHTML = `<strong>Puntaje:</strong> ${correct} / ${quizData.length} — ${Math.round((correct/quizData.length)*100)}%`;
-    }
-
-    submit.addEventListener('click', grade);
-    reset.addEventListener('click', render);
-
-    render();
+      document.getElementById('result').textContent = `Puntaje: ${puntaje}/${preguntas.length}`;
+    };
   </script>
 </body>
 </html>
+
